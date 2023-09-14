@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "cli_interface.h": "c",
+        "usart.h": "c",
+        "main.h": "c"
+    }
+}
