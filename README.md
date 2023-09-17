@@ -2,9 +2,9 @@
 
 테스트 환경
 
-tools  : stm32cubeide (gcc compiler) / vs code / source tree / tera term
-
-target : stm32f401re nuecleo
+- stm32cubeide (gcc compiler)  
+- vs code / source tree / tera term
+- stm32f401re nuecleo
 
 
 *stm32f401re nucleo 보드 Command line interface test 입니다*
