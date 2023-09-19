@@ -201,13 +201,13 @@ int cbf_boot_logo(int argc, char *argv[])
     printf("╭━━━╮///╭╮/////\r\n");
     printf("┃╭━━╯///┃┃/////\r\n");
     printf("┃╰━━┳┳━━┫╰━╮///\r\n");
-    printf("┃╭━━╋┫━━┫╭╮┃///*%s\r\n", tag.fw_name);
-    printf("┃┃//┃┣━━┃┃┃┃///*%s\r\n", tag.fw_date);
+    printf("┃╭━━╋┫━━┫╭╮┃///*%s\r\n", tag->fw_name);
+    printf("┃┃//┃┣━━┃┃┃┃///*%s\r\n", tag->fw_date);
     printf("╰╯//╰┻━━┻╯╰╯\r\n");
 
     #else // TYPE 2
-    printf("  *%s\r\n", tag.fw_name);
-    printf("  *%s\r\n", tag.fw_date);
+    printf("  *%s\r\n", tag->fw_name);
+    printf("  *%s\r\n", tag->fw_date);
     #endif
     CONSOLE_SPLIT;
     printf(" $Fish >> ");
@@ -216,7 +216,7 @@ int cbf_boot_logo(int argc, char *argv[])
 
 int cbf_sn(int argc, char *argv[])
 {
-    printf("SN : %06d\r\n", (int)tag.fw_sn);
+    printf("SN : %06d\r\n", (int)tag->fw_sn);
     return 0;
 }
 
@@ -381,12 +381,12 @@ int cbf_app_fw_jump(int argc, char *argv[])
 int cbf_tag(int argc, char *argv[])
 {
     CONSOLE_SPLIT;
-    printf("FW Info\t\t\t%s\r\n", tag.fw_name);
-    printf("FW Date\t\t\t%s\r\n", tag.fw_date);
-    printf("FW SN\t\t\t%s\r\n", tag.fw_sn );
-    printf("FW Version\t\t%s\r\n", tag.fw_version );
-    printf("FW Compiled date\t%s\r\n", tag.fw_compile_data);
-    printf("FW Compiled time\t%s\r\n", tag.fw_compile_time);
+    printf("FW Info\t\t\t%s\r\n", tag->fw_name);
+    printf("FW Date\t\t\t%s\r\n", tag->fw_date);
+    printf("FW SN\t\t\t%s\r\n", tag->fw_sn );
+    printf("FW Version\t\t%s\r\n", tag->fw_version );
+    printf("FW Compiled date\t%s\r\n", tag->fw_compile_data);
+    printf("FW Compiled time\t%s\r\n", tag->fw_compile_time);
     CONSOLE_SPLIT;
     return 0;
 }

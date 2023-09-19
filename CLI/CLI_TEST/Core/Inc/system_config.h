@@ -12,7 +12,7 @@ typedef struct {
   char *fw_compile_time;
 } fw_tag_t;
 
-extern fw_tag_t tag;
+extern fw_tag_t *tag;
 
 
 

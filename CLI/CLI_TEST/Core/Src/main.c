@@ -106,6 +106,10 @@ int main(void)
   printf("if you don't want this, press any key\r\n");
   printf("entering main fw... \r\n");
   CONSOLE_SPLIT;
+  #else
+  CONSOLE_SPLIT;
+  printf("Main App Jumped addr @0x0802 0000\r\n");
+  CONSOLE_SPLIT;
   #endif
   
   uint16_t sec = 3, time = 0;

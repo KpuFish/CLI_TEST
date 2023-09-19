@@ -2,7 +2,7 @@
 #include "system_config.h"
 
 
-
+#if COFNIG_BOOT_INFO_FROM_BOOTLOADER
 //-------------------------------------------------------
 // Firmware Info
 //-------------------------------------------------------
@@ -15,7 +15,10 @@ __attribute__((section(".tag"))) fw_tag_t tag = {
   .fw_compile_time  = __TIME__,
 };
 //-------------------------------------------------------
-
+#else
+#define FLASH_TAG_ADDRESS   0x08010000;
+fw_tag_t *tag = FLASH_TAG_ADDRESS;
+#endif
 
 /**
   * @brief System Clock Configuration
