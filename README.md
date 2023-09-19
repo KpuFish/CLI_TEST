@@ -13,4 +13,5 @@
 
 *x-modem으로 fw 업데이트가 가능합니다*
 
-![image](https://github.com/KpuFish/CLI_TEST/assets/43401975/810e9f71-3384-49e9-9a8f-9f047b9cb60c)
+
+![image](https://github.com/KpuFish/CLI_TEST/assets/43401975/75db525a-5315-40e7-8bc4-7220d440d92c)
