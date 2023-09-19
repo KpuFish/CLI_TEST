@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"cli_interface.h": "c",
+			"usart.h": "c",
+			"main.h": "c",
+			"flash_if.h": "c",
+			"xmodem.h": "c",
+			"common.h": "c"
+		}
+	}
+}

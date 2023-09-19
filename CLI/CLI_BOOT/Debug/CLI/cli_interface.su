@@ -1,0 +1,14 @@
+../CLI/cli_interface.c:38:5:__io_putchar	16	static
+../CLI/cli_interface.c:89:6:Convert_Char	16	static
+../CLI/cli_interface.c:102:6:HAL_UART_RxCpltCallback	16	static
+../CLI/cli_interface.c:132:5:parser	112	static
+../CLI/cli_interface.c:197:5:cbf_boot_logo	16	static
+../CLI/cli_interface.c:217:5:cbf_sn	16	static
+../CLI/cli_interface.c:223:5:cbf_help	24	static
+../CLI/cli_interface.c:234:5:cbf_reset	16	static
+../CLI/cli_interface.c:241:5:cbf_test	16	static
+../CLI/cli_interface.c:250:5:cbf_xmodem	24	static
+../CLI/cli_interface.c:296:5:cbf_dump	32	static
+../CLI/cli_interface.c:337:5:cbf_flash_test	40	static
+../CLI/cli_interface.c:367:5:cbf_app_fw_jump	32	static,ignoring_inline_asm
+../CLI/cli_interface.c:381:5:cbf_tag	16	static

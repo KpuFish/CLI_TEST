@@ -1,0 +1,6 @@
+flash_if.c:41:6:FLASH_If_Init	1
+flash_if.c:58:10:FLASH_If_Erase	3
+flash_if.c:111:10:FLASH_If_Write	5
+flash_if.c:150:10:FLASH_If_GetWriteProtectionStatus	3
+flash_if.c:195:17:GetSector	17
+flash_if.c:275:19:FLASH_If_WriteProtectionConfig	2

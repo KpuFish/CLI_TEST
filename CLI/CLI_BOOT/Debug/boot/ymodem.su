@@ -1,0 +1,10 @@
+../boot/ymodem.c:65:4:YMODEM_Getchar	16	static
+../boot/ymodem.c:79:19:YMODEM_WaitForChar	24	static
+../boot/ymodem.c:104:26:ReceivePacket	48	static
+../boot/ymodem.c:195:13:PrepareIntialPacket	48	static
+../boot/ymodem.c:236:13:PreparePacket	40	static
+../boot/ymodem.c:276:10:UpdateCRC16	24	static
+../boot/ymodem.c:302:10:Cal_CRC16	24	static
+../boot/ymodem.c:322:9:CalcChecksum	24	static
+../boot/ymodem.c:343:19:Ymodem_Receive	104	static
+../boot/ymodem.c:534:19:Ymodem_Transmit	64	static

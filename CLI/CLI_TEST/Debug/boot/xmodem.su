@@ -1,0 +1,7 @@
+../boot/xmodem.c:32:6:Xmodem_InitVariable	4	static
+../boot/xmodem.c:46:4:Xmodem_Getchar	16	static
+../boot/xmodem.c:67:8:XMODEM_WaitForChar	24	static
+../boot/xmodem.c:98:8:XMODEM_GetRecord	32	static
+../boot/xmodem.c:163:8:XMODEM_Rx	32	static
+../boot/xmodem.c:277:8:XMODEM_SendRecord	32	static
+../boot/xmodem.c:321:8:XMODEM_Tx	40	static

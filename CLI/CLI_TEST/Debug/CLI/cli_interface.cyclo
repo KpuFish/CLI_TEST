@@ -1,0 +1,14 @@
+cli_interface.c:38:5:__io_putchar	1
+cli_interface.c:89:6:Convert_Char	3
+cli_interface.c:102:6:HAL_UART_RxCpltCallback	6
+cli_interface.c:132:5:parser	5
+cli_interface.c:197:5:cbf_boot_logo	1
+cli_interface.c:217:5:cbf_sn	1
+cli_interface.c:223:5:cbf_help	2
+cli_interface.c:234:5:cbf_reset	1
+cli_interface.c:241:5:cbf_test	1
+cli_interface.c:250:5:cbf_xmodem	2
+cli_interface.c:296:5:cbf_dump	5
+cli_interface.c:337:5:cbf_flash_test	1
+cli_interface.c:367:5:cbf_app_fw_jump	1
+cli_interface.c:381:5:cbf_tag	1

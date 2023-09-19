@@ -1,0 +1,6 @@
+../boot/flash_if.c:41:6:FLASH_If_Init	4	static
+../boot/flash_if.c:58:10:FLASH_If_Erase	48	static
+../boot/flash_if.c:111:10:FLASH_If_Write	40	static
+../boot/flash_if.c:150:10:FLASH_If_GetWriteProtectionStatus	48	static
+../boot/flash_if.c:195:17:GetSector	24	static
+../boot/flash_if.c:275:19:FLASH_If_WriteProtectionConfig	80	static

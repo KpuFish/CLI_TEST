@@ -1,0 +1,3 @@
+system_config.c:24:6:SystemClock_Config	3
+system_config.c:78:6:HAL_TIM_PeriodElapsedCallback	2
+system_config.c:95:6:Error_Handler	1

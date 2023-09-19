@@ -1,9 +1,8 @@
 
 #include "usart.h"
 #include "cli_interface.h"
-
-
-
+#include "system_config.h"
+#include "menu.h"
 
 
 //----------------------------------------
@@ -69,12 +68,17 @@ DEBUG_VIEW_t view;
  */
 const CMD_LIST cmd_list[] =
 {
-    {"?"            , cbf_help      }, 
-    {"RESET"        , cbf_reset     }, // software reset for entering the bootloader
-    {"MODEL?"       , cbf_boot_logo },
-    {"SN?"          , cbf_sn        },
-    {"TEST"         , cbf_test      },
-    {(char*)NULL    , (CBF)NULL     }
+    {"?"            , cbf_help       }, 
+    {"RESET"        , cbf_reset      }, // software reset for entering the bootloader
+    {"MODEL?"       , cbf_boot_logo  },
+    {"SN?"          , cbf_sn         },
+    {"TEST"         , cbf_test       },
+    {"X"            , cbf_xmodem     },
+    {"DUMP"         , cbf_dump       },
+    {"FLASH_TEST"   , cbf_flash_test },
+    {"JUMP"         , cbf_app_fw_jump},
+    {"TAG"          , cbf_tag},
+    {(char*)NULL    , (CBF)NULL      }
 };
 
 
@@ -197,13 +201,13 @@ int cbf_boot_logo(int argc, char *argv[])
     printf("╭━━━╮///╭╮/////\r\n");
     printf("┃╭━━╯///┃┃/////\r\n");
     printf("┃╰━━┳┳━━┫╰━╮///\r\n");
-    printf("┃╭━━╋┫━━┫╭╮┃///*%s\r\n", version_info);
-    printf("┃┃//┃┣━━┃┃┃┃///*%s\r\n", model_info);
+    printf("┃╭━━╋┫━━┫╭╮┃///*%s\r\n", tag.fw_name);
+    printf("┃┃//┃┣━━┃┃┃┃///*%s\r\n", tag.fw_date);
     printf("╰╯//╰┻━━┻╯╰╯\r\n");
 
     #else // TYPE 2
-    printf("  *%s\r\n", version_info);
-    printf("  *%s\r\n", model_info);
+    printf("  *%s\r\n", tag.fw_name);
+    printf("  *%s\r\n", tag.fw_date);
     #endif
     CONSOLE_SPLIT;
     printf(" $Fish >> ");
@@ -212,7 +216,7 @@ int cbf_boot_logo(int argc, char *argv[])
 
 int cbf_sn(int argc, char *argv[])
 {
-    printf("SN : %06d\r\n", model_sn);
+    printf("SN : %06d\r\n", (int)tag.fw_sn);
     return 0;
 }
 
@@ -229,6 +233,7 @@ int cbf_help(int argc, char *argv[])
 
 int cbf_reset(int argc, char *argv[])
 {
+    // software reset
     HAL_NVIC_SystemReset();
     return 0;
 }
@@ -240,3 +245,149 @@ int cbf_test(int argc, char *argv[])
 	printf("TEST \r\n");
 	return 0;
 }
+
+
+int cbf_xmodem(int argc, char *argv[])
+{
+    uint32_t x_modem_size = 0;
+    // f/w update using uart polling
+    HAL_NVIC_DisableIRQ(USART2_IRQn);
+
+    #if 0
+    if (HAL_FLASH_Unlock() != HAL_OK) {
+        printf("Flash Unlcok failed\r\n");
+        return 0;
+    }
+
+    FLASH_If_Init();
+    #else
+    FLASH_If_Erase(FLASH_BASE_MAIN_APP);
+    #endif
+
+    // entering x-modem ...
+    uint8_t ret = XMODEM_Rx((uint32_t*)&x_modem_size, (uint32_t *)FLASH_BASE_MAIN_APP);
+    
+    HAL_FLASH_Lock();
+
+    printf("\r\n");
+    CONSOLE_SPLIT;
+    if (ret == FALSE) {
+        printf("X-Modem Failed\r\n");
+
+    } else {
+        printf("X-Modem Completed size : %d byte\r\n", (int)x_modem_size);
+    }
+    CONSOLE_SPLIT;
+
+    // resetting uart isr
+    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
+    return 0;
+}
+
+
+#define FLASH_RANGE_START   0x08000000
+#define FLASH_RANGE_END     0x080F0000
+#define LINE				4
+#define CHAR_SPACE          ' '
+#define CHAR_z              'z'
+#define CHAR_dot            '.'
+#define ASCII_CHAR_DUMP     0
+int cbf_dump(int argc, char *argv[])
+{
+    uint32_t size  = atoi(argv[2]);
+    volatile uint32_t *addr = (volatile uint32_t *) strtol(argv[1], NULL, 16);
+
+    #if ASCII_CHAR_DUMP
+    uint8_t buffer[LINE] = { 0, };
+    #endif
+
+    if (addr < (uint32_t*)FLASH_RANGE_START || addr > (uint32_t*)FLASH_RANGE_END) {
+        printf("Flash Range is 0x%08x ~ 0x%08x\r\n", FLASH_RANGE_START, FLASH_RANGE_END);
+        return 0;
+    }
+
+    CONSOLE_SPLIT;
+    printf("Base Addrr // dump data ... \n");
+    CONSOLE_SPLIT;
+    printf("0x%08x : ", (uint32_t *)addr);
+    
+    for (uint16_t range = 1; range <= size; range++) {
+        #if ASCII_CHAR_DUMP
+        if (( *(uint8_t*)addr > CHAR_SPACE) && ( *(uint8_t*)addr <= CHAR_z)) {
+            buffer[range - 1] = *(uint8_t*)addr;  
+        } else { 
+            buffer[range - 1] = CHAR_dot;
+        }
+        #endif
+
+        printf("%04x\t",  *(uint32_t *)addr++);
+        if (range % LINE == 0) {
+            #if ASCII_CHAR_DUMP
+            printf("\t: %s", buffer);
+            #endif
+            printf("\r\n");
+            printf("0x%08x : ", (uint32_t *)addr);
+        }
+    }
+    printf("\r\n");
+    return 0;
+}
+
+int cbf_flash_test(int argc, char *argv[])
+{
+    volatile uint32_t *flash_addr = (volatile uint32_t *) strtol(argv[1], NULL, 16);
+    uint32_t addr = flash_addr;
+    uint32_t data = atoi(argv[2]);
+    
+    #if 0
+    if (HAL_FLASH_Unlock() != HAL_OK) {
+        printf("Flash Unlcok failed\r\n");
+        return 0;
+    }
+
+    FLASH_If_Init();
+    #else
+    FLASH_If_Erase(addr);
+    #endif
+
+    #if 1
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, flash_addr, data);
+    #else
+    *flash_addr = data;
+    #endif
+
+    HAL_FLASH_Lock();
+    
+    printf("0x%08x - 0x%08x\r\n", flash_addr, *flash_addr);
+    return 0;
+}
+
+#define VCCTOR_TABLE_OFFSET     4
+int cbf_app_fw_jump(int argc, char *argv[])
+{
+    printf("Start...\r\n");
+    pFunction Jump_To_Application;
+
+    volatile uint32_t JumpAddress = *(__IO uint32_t*) (FLASH_BASE_MAIN_APP + VCCTOR_TABLE_OFFSET);
+    /* Jump to user application */
+    Jump_To_Application = (pFunction) JumpAddress;
+    /* Initialize user application's Stack Pointer */
+    __set_MSP(*(__IO uint32_t*) FLASH_BASE_MAIN_APP);
+    Jump_To_Application(); 
+    return 0;
+}
+
+int cbf_tag(int argc, char *argv[])
+{
+    CONSOLE_SPLIT;
+    printf("FW Info\t\t\t%s\r\n", tag.fw_name);
+    printf("FW Date\t\t\t%s\r\n", tag.fw_date);
+    printf("FW SN\t\t\t%s\r\n", tag.fw_sn );
+    printf("FW Version\t\t%s\r\n", tag.fw_version );
+    printf("FW Compiled date\t%s\r\n", tag.fw_compile_data);
+    printf("FW Compiled time\t%s\r\n", tag.fw_compile_time);
+    CONSOLE_SPLIT;
+    return 0;
+}
+
