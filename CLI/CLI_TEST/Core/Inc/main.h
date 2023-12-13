@@ -32,10 +32,6 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-extern const char *version_info ;
-extern const char *model_info   ;
-extern const uint16_t model_sn  ;
-
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

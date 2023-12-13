@@ -35,12 +35,17 @@
 
 
 //------------------------------------------------
-// Define List
+// Enum List
 //------------------------------------------------
-//#define VIEW_DBG_MEASE                      0x0000
-#define VIEW_DBG_RELAY                      0x1000
-//#define VIEW_DBG_ETC                        0x1001
-
+typedef enum {
+    VIEW_NONE       = 0x0000,
+    VIEW_DBG_MEASE  = 0x1000,
+    VIEW_DBG_RELAY  = 0x1001,
+    VIEW_DBG_ETC    = 0x1002,
+    VIEW_DBG_SRAM   = 0x1003,
+    VIEW_DBG_FLASH  = 0x1004,
+    VIEW_MAX        = 0xFFFF
+} VIEW_DBG_POINT_e;
 
 
 //------------------------------------------------
@@ -71,13 +76,14 @@
 
 #define REPEAT_LAST_CMD                     "*"
 
-#define CONSOLE_SPLIT                       printf("--------------------------------------------------------------------\r\n")
+#define CONSOLE_SPLIT                       printf("--------------------------------------------------\r\n")
 
 
 //------------------------------------------------
 // Structure List
 //------------------------------------------------
-typedef struct {
+typedef struct 
+{
     uint8_t buffer[UART_BUF_MAX];
     uint8_t rx_index;
     uint8_t rx_done;
@@ -89,12 +95,14 @@ extern CLI_t cli;
 typedef int (*CBF)(int argc, char *argv[]);
 typedef struct 
 {
-    char *name;
+    const char *name;
     CBF   func;
+    const char *description;
 } CMD_LIST;
 
 
-typedef struct {
+typedef struct 
+{
     uint16_t dbg_set;
     uint16_t dbg_value;
 } DEBUG_VIEW_t;
@@ -117,7 +125,10 @@ int cbf_dump(int argc, char *argv[]);
 int cbf_flash_test(int argc, char *argv[]);
 int cbf_app_fw_jump(int argc, char *argv[]);
 int cbf_tag(int argc, char *argv[]);
-
+int cbf_test_assert(int argc, char *argvp[]);
+int cbf_event_test(int argc, char *argv[]);
+int cbf_event_reset(int argc, char *argv[]);
+int cbf_dbg_view(int argc, char *argv[]);
 
 
 int cbf_sn(int argc, char *argv[]);

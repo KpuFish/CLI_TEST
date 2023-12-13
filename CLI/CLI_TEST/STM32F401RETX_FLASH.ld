@@ -45,7 +45,8 @@ _Min_Stack_Size = 0x800; /* required amount of stack */
 MEMORY
 {
   RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 96K
-  FLASH    (rx)    : ORIGIN = 0x8020000,   LENGTH = 392K
+  FLASH    (rx)    : ORIGIN = 0x8020000,   LENGTH = 256K
+  EVENT    (rx)    : ORIGIN = 0x8060000,   LENGTH = 128K
   TAG      (rx)    : ORIGIN = 0x8010000,   LENGTH = 64K
 }
 
@@ -59,6 +60,13 @@ SECTIONS
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH
+
+  .event :
+  {
+    . = ALIGN(4);
+    KEEP(*(.event)) /* Startup code */
+    . = ALIGN(4);
+  } >EVENT
 
   .tag :
   {

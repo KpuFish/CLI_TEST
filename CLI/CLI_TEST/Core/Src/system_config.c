@@ -16,9 +16,10 @@ __attribute__((section(".tag"))) fw_tag_t tag = {
 };
 //-------------------------------------------------------
 #else
-#define FLASH_TAG_ADDRESS   0x08010000;
+#define FLASH_TAG_ADDRESS   (volatile uint32_t *)0x08010000U
 fw_tag_t *tag = FLASH_TAG_ADDRESS;
 #endif
+
 
 /**
   * @brief System Clock Configuration

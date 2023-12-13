@@ -3,6 +3,7 @@
 #include "cli_interface.h"
 #include "system_config.h"
 #include "menu.h"
+#include "event_log.h"
 
 
 //----------------------------------------
@@ -11,7 +12,11 @@
 
 uint8_t uart_rx_byte = 0;
 
-#if 0
+#define RETARGET_1 0
+#define RETARGET_2 0
+#define RETARGET_3 1
+
+#if RETARGET_1
 #ifdef __cplusplus
 extern "C" int _write(int32_t file, uint8_t *ptr, int32_t len) {
 #else
@@ -22,7 +27,7 @@ int _write(int32_t file, uint8_t *ptr, int32_t len) {
 }
 #endif
 
-#if 0
+#if RETARGET_2
 int _write( int32_t file , uint8_t *ptr , int32_t len )
 {
     /* Implement your write code here, this is used by puts and printf for example */
@@ -34,7 +39,7 @@ int _write( int32_t file , uint8_t *ptr , int32_t len )
 }
 #endif
 
-#if 1
+#if RETARGET_3
 int __io_putchar(int ch)
 {
     #if USE_TX_DMA
@@ -68,17 +73,23 @@ DEBUG_VIEW_t view;
  */
 const CMD_LIST cmd_list[] =
 {
-    {"?"            , cbf_help       }, 
-    {"RESET"        , cbf_reset      }, // software reset for entering the bootloader
-    {"MODEL?"       , cbf_boot_logo  },
-    {"SN?"          , cbf_sn         },
-    {"TEST"         , cbf_test       },
-    {"X"            , cbf_xmodem     },
-    {"DUMP"         , cbf_dump       },
-    {"FLASH_TEST"   , cbf_flash_test },
-    {"JUMP"         , cbf_app_fw_jump},
-    {"TAG"          , cbf_tag},
-    {(char*)NULL    , (CBF)NULL      }
+    {"?"            , cbf_help             , "Show All Command"                 }, 
+    {"RESET"        , cbf_reset            , "System Reboot"                    },
+    {"MODEL?"       , cbf_boot_logo        , "Check Model Info"                 },
+    {"SN?"          , cbf_sn               , "Check SN Info"                    },
+    {"TEST"         , cbf_test             , "Test CLI Arguments"               },
+    {"X"            , cbf_xmodem           , "F/W Download"                     },
+    {"DUMP"         , cbf_dump             , "Dump Memory"                      },
+    {"FLASH_TEST"   , cbf_flash_test       , "Test Flash WR"                    },
+    //{"JUMP"         , cbf_app_fw_jump      , "Jump from Bootloader to Main App" },
+    {"TAG"          , cbf_tag              , "Check Tag Info"                   },
+    {"ASSERT"       , cbf_test_assert      , "Test Assert"                      },
+    {"SHOW"         , PRINT_SRAM_EVENT_LOG , "Print Event Log"                  },
+    {"EVENT_TEST"   , cbf_event_test       , "Test Event Log"                   },
+    {"EVENT_RESET"  , cbf_event_reset      , "Reset Event Log"                  },
+    {"DBG"          , cbf_dbg_view         , "View Dbg Message"                 },
+
+    {(char*)NULL    , (CBF)NULL            , (char*)NULL                        }
 };
 
 
@@ -204,7 +215,6 @@ int cbf_boot_logo(int argc, char *argv[])
     printf("┃╭━━╋┫━━┫╭╮┃///*%s\r\n", tag->fw_name);
     printf("┃┃//┃┣━━┃┃┃┃///*%s\r\n", tag->fw_date);
     printf("╰╯//╰┻━━┻╯╰╯\r\n");
-
     #else // TYPE 2
     printf("  *%s\r\n", tag->fw_name);
     printf("  *%s\r\n", tag->fw_date);
@@ -223,10 +233,11 @@ int cbf_sn(int argc, char *argv[])
 int cbf_help(int argc, char *argv[])
 {
     CONSOLE_SPLIT;
-    printf("Command List \r\n");
+    printf("Command List %-6s Description\r\n", "||");
     CONSOLE_SPLIT;
-    for (int cnt = 0; cmd_list[cnt].name != NULL; cnt++) {
-        printf("%s \r\n", cmd_list[cnt].name);
+    for (int cnt = 1; cmd_list[cnt].name != NULL; cnt++) {
+        printf("%-20s", cmd_list[cnt].name);
+        printf("%-50s\r", cmd_list[cnt].description);
     }
     return 0;
 }
@@ -391,3 +402,63 @@ int cbf_tag(int argc, char *argv[])
     return 0;
 }
 
+int cbf_test_assert(int argc, char *argv[])
+{
+    volatile int ret = atoi(argv[1]);
+    assert_param(ret);
+    return 0;
+}
+
+int cbf_event_test(int argc, char *argv[])
+{
+    EVENT_TYPE_e type = atoi(argv[1]);
+    if ((type < EVENT_LOG_RESET) || (type >= EVENT_MAX)) {
+        return FALSE;
+    }
+
+    //printf("type : %d \r\n", type);
+    SAVE_SRAM_EVENT_LOG(type);
+    return 0;
+}
+
+int cbf_event_reset(int argc, char *argv[])
+{
+    RESET_EVENT_LOG();
+    printf("Event Reset Completed\r\n");
+    return 0;
+}
+
+int cbf_dbg_view(int argc, char *argv[])
+{
+    VIEW_DBG_POINT_e view_list[] = 
+    {
+        VIEW_NONE     ,
+        VIEW_DBG_MEASE,
+        VIEW_DBG_RELAY,
+        VIEW_DBG_ETC  ,
+        VIEW_DBG_SRAM ,
+        VIEW_DBG_FLASH,
+        VIEW_MAX
+    };
+    
+    const uint8_t max_size = sizeof(view_list) / sizeof(view_list[0]);
+    uint16_t view_point = (volatile uint16_t *) strtol(argv[1], NULL, 16);
+    
+    if (view_point <= VIEW_NONE || view_point >= VIEW_MAX) {
+        CONSOLE_SPLIT;
+        printf("Invalid View Point\r\n");        
+        printf("VIEW POINT HEX is ... \r\n");
+        CONSOLE_SPLIT;
+        for (uint8_t cnt = 1; cnt < max_size - 1; cnt++) {
+            printf("0x%08x\r\n", view_list[cnt]);
+        }
+        CONSOLE_SPLIT;
+        return 0;
+    }
+    
+    view.dbg_value = view_point;
+
+    CONSOLE_SPLIT;
+    printf("view_point is 0x%04x\r\n", view.dbg_value);
+    CONSOLE_SPLIT;
+}
