@@ -25,5 +25,5 @@
 
 
 # F/W Update Log
-23.12.13 Updated - Event log & CLI add
-23.09.19 Initial Commit - Bootloader & CLI App F/W Load
+- 23.12.13 Updated - Event log & CLI add
+- 23.09.19 Initial Commit - Bootloader & CLI App F/W Load
