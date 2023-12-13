@@ -19,6 +19,11 @@
 - 0x0800 0000 -> bootloader 시작
 - 0x0801 0000 -> f/w tag 영역으로 고정 할당 (linker script section 추가)
 - 0x0802 0000 -> main app f/w 진입
-
+- 0x0806 0000 -> Event Log
 
 ![image](https://github.com/KpuFish/CLI_TEST/assets/43401975/75db525a-5315-40e7-8bc4-7220d440d92c)
+
+
+# F/W Update Log
+23.12.13 Updated - Event log & CLI add
+23.09.19 Initial Commit - Bootloader & CLI App F/W Load
