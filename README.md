@@ -15,6 +15,10 @@
 
 *bootloader project와 main f/w project를 분리해놓았습니다*
 
+*CLI_BOOT -> Bootloader*
+
+*CLI_TEST -> Main App F/W*
+
 *stm32f401 flash memory 구조 상태*
 - 0x0800 0000 -> bootloader 시작
 - 0x0801 0000 -> f/w tag 영역으로 고정 할당 (linker script section 추가)
