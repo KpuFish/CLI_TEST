@@ -68,6 +68,13 @@ void MX_GPIO_Init(void)
 
 }
 
-/* USER CODE BEGIN 2 */
 
-/* USER CODE END 2 */
+void LED_ON(void)
+{
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+}
+
+void LED_OFF(void)
+{
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+}

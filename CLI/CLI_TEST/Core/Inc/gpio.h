@@ -28,19 +28,26 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-/* USER CODE BEGIN Includes */
 
-/* USER CODE END Includes */
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
-
+//------------------------------------------------
+// Function List
+//------------------------------------------------
 void MX_GPIO_Init(void);
 
-/* USER CODE BEGIN Prototypes */
+void LED_ON(void);
+void LED_OFF(void);
 
-/* USER CODE END Prototypes */
+
+//------------------------------------------------
+// Enum List
+//------------------------------------------------
+typedef enum {
+  kLED_NONE,
+  kLED_OFF,
+  kLED_ON
+} LED_STATE_e;
+
+
 
 #ifdef __cplusplus
 }

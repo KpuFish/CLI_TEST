@@ -25,7 +25,8 @@ typedef enum
     EVENT_INVALID,
     EVENT_LOG_RESET,
     EVENT_BOOT,
-    EVENT_LED,
+    EVENT_LED_ON,
+    EVENT_LED_OFF,
     EVENT_MAX
 } EVENT_TYPE_e;
 
@@ -37,7 +38,7 @@ typedef struct
 {
     uint32_t index;
     uint32_t type[EVENT_LIST_MAX];
-    const char *name[EVENT_LIST_MAX];
+    //const char *name[EVENT_LIST_MAX];
     uint16_t crc;
 } EVENT_MANAGE_t;
 
@@ -51,6 +52,7 @@ extern EVENT_MANAGE_t *event_manage;
 //------------------------------------------------
 // Function List
 //------------------------------------------------
+void RESET_EVENT_LOG(void);
 void SAVE_EVENT_LOG(EVENT_TYPE_e event);
 void PRINT_EVENT_LOG(void);
 void SAVE_SRAM_EVENT_LOG(EVENT_TYPE_e event);

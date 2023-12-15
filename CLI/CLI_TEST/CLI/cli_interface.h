@@ -126,6 +126,7 @@ int cbf_flash_test(int argc, char *argv[]);
 int cbf_app_fw_jump(int argc, char *argv[]);
 int cbf_tag(int argc, char *argv[]);
 int cbf_test_assert(int argc, char *argvp[]);
+int cbf_event_print(int argc, char *argv[]);
 int cbf_event_test(int argc, char *argv[]);
 int cbf_event_reset(int argc, char *argv[]);
 int cbf_dbg_view(int argc, char *argv[]);

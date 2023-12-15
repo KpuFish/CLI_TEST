@@ -9,7 +9,13 @@
 //-----------------------------------------------------
 #define MAIN_APP          1
 //-----------------------------------------------------
-#define TIME_1SEC         1000
+#define TIME_SEC         10000
+
+
+
+LED_STATE_e gLED = kLED_OFF;
+static void STATE_LED(void);
+
 
 
 void app_main(void)
@@ -37,26 +43,52 @@ void app_main(void)
     } while (1);
     #endif
 
+    //-------------------------------
+    // Event System Log Start ...
+    //-------------------------------
     RESET_EVENT_LOG();
+    #if _USE_FLASH_
     COPY_EVENT_LOG(EVENT_SRAM);
+    #endif
     SAVE_SRAM_EVENT_LOG(EVENT_BOOT);
+    //-------------------------------
     
     while (1)
     {
-        /* USER CODE END WHILE */
         if (cli.rx_done == CLI_READY) {
             cli.rx_done = CLI_CLEAR;
             parser((char *) &cli.buffer[0]);
         }
 
         #if MAIN_APP
-        // for checking main app fw
-        if (HAL_GetTick() - time >= TIME_1SEC) {
+        if (HAL_GetTick() - time >= TIME_SEC) {
             time = HAL_GetTick();
             #if DBG_LED
-            HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+            STATE_LED();
             #endif
         }
         #endif
     }
 }
+
+#if DBG_LED
+static void STATE_LED(void)
+{
+    switch (gLED) {
+        case kLED_ON   : 
+            gLED = kLED_OFF;
+            LED_OFF();
+            SAVE_SRAM_EVENT_LOG(EVENT_LED_OFF);        
+        break;
+        
+        case kLED_OFF  : 
+        case kLED_NONE :
+        default        :  
+            gLED = kLED_ON;
+            LED_ON();
+            SAVE_SRAM_EVENT_LOG(EVENT_LED_ON);
+        break;
+    }
+}
+#endif
+

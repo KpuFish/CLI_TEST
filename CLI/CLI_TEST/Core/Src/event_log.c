@@ -35,7 +35,8 @@ const char *gpEVENT_tb_NAME_LIST[EVENT_MAX] =
     "None",
     "SYSTEM LOG Reset",
     "SYSTEM BOOTING ON",
-    "SYSTEM LED Toggled"
+    "SYSTEM LED ON",
+    "SYSTEM LED OFF"
 };
 
 
@@ -145,7 +146,7 @@ void RESET_EVENT_LOG(void)
 {
     memset(&event_main, 0, sizeof(EVENT_MANAGE_t));
 
-    #if _USE_FLASH_
+    #if 1 // _USE_FLASH_
     FLASH_If_Erase(event_manage);
 
     SAVE_SRAM_EVENT_LOG(EVENT_LOG_RESET);

@@ -84,7 +84,7 @@ const CMD_LIST cmd_list[] =
     //{"JUMP"         , cbf_app_fw_jump      , "Jump from Bootloader to Main App" },
     {"TAG"          , cbf_tag              , "Check Tag Info"                   },
     {"ASSERT"       , cbf_test_assert      , "Test Assert"                      },
-    {"SHOW"         , PRINT_SRAM_EVENT_LOG , "Print Event Log"                  },
+    {"EVENT?"       , cbf_event_print      , "Print Event Log"                  },
     {"EVENT_TEST"   , cbf_event_test       , "Test Event Log"                   },
     {"EVENT_RESET"  , cbf_event_reset      , "Reset Event Log"                  },
     {"DBG"          , cbf_dbg_view         , "View Dbg Message"                 },
@@ -213,7 +213,7 @@ int cbf_boot_logo(int argc, char *argv[])
     printf("┃╭━━╯///┃┃/////\r\n");
     printf("┃╰━━┳┳━━┫╰━╮///\r\n");
     printf("┃╭━━╋┫━━┫╭╮┃///*%s\r\n", tag->fw_name);
-    printf("┃┃//┃┣━━┃┃┃┃///*%s\r\n", tag->fw_date);
+    printf("┃┃//┃┣━━┃┃┃┃///\r\n"); // *%s\r\n", ); //tag->fw_date);
     printf("╰╯//╰┻━━┻╯╰╯\r\n");
     #else // TYPE 2
     printf("  *%s\r\n", tag->fw_name);
@@ -226,7 +226,7 @@ int cbf_boot_logo(int argc, char *argv[])
 
 int cbf_sn(int argc, char *argv[])
 {
-    printf("SN : %06d\r\n", (int)tag->fw_sn);
+    printf("SN : %s\r\n", (int)tag->fw_sn);
     return 0;
 }
 
@@ -237,7 +237,7 @@ int cbf_help(int argc, char *argv[])
     CONSOLE_SPLIT;
     for (int cnt = 1; cmd_list[cnt].name != NULL; cnt++) {
         printf("%-20s", cmd_list[cnt].name);
-        printf("%-50s\r", cmd_list[cnt].description);
+        printf("%-30s\r", cmd_list[cnt].description);
     }
     return 0;
 }
@@ -348,7 +348,7 @@ int cbf_dump(int argc, char *argv[])
 int cbf_flash_test(int argc, char *argv[])
 {
     volatile uint32_t *flash_addr = (volatile uint32_t *) strtol(argv[1], NULL, 16);
-    uint32_t addr = flash_addr;
+    uint32_t addr = (uint32_t)flash_addr;
     uint32_t data = atoi(argv[2]);
     
     #if 0
@@ -363,7 +363,7 @@ int cbf_flash_test(int argc, char *argv[])
     #endif
 
     #if 1
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, flash_addr, data);
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (uint32_t)flash_addr, data);
     #else
     *flash_addr = data;
     #endif
@@ -404,8 +404,16 @@ int cbf_tag(int argc, char *argv[])
 
 int cbf_test_assert(int argc, char *argv[])
 {
-    volatile int ret = atoi(argv[1]);
+	#if 0
+	int ret = atoi(argv[1]);
     assert_param(ret);
+	#endif
+    return 0;
+}
+
+int cbf_event_print(int argc, char *argv[])
+{
+    PRINT_SRAM_EVENT_LOG();
     return 0;
 }
 
@@ -442,7 +450,7 @@ int cbf_dbg_view(int argc, char *argv[])
     };
     
     const uint8_t max_size = sizeof(view_list) / sizeof(view_list[0]);
-    uint16_t view_point = (volatile uint16_t *) strtol(argv[1], NULL, 16);
+    uint32_t view_point = (uint16_t *) strtol(argv[1], NULL, 16);
     
     if (view_point <= VIEW_NONE || view_point >= VIEW_MAX) {
         CONSOLE_SPLIT;
@@ -456,9 +464,11 @@ int cbf_dbg_view(int argc, char *argv[])
         return 0;
     }
     
-    view.dbg_value = view_point;
+    view.dbg_value = (uint16_t)view_point;
 
     CONSOLE_SPLIT;
     printf("view_point is 0x%04x\r\n", view.dbg_value);
     CONSOLE_SPLIT;
+
+    return 0;
 }
