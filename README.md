@@ -28,6 +28,9 @@
 ![image](https://github.com/KpuFish/CLI_TEST/assets/43401975/75db525a-5315-40e7-8bc4-7220d440d92c)
 
 
+# Event System Log Record
+![evt](https://github.com/KpuFish/CLI_TEST/assets/43401975/b6217cc9-45da-4b93-a504-d6e33b7ba7e5)
+
 # F/W Update Log
 - 23.12.13 Updated - Event log & CLI add
 - 23.09.19 Initial Commit - Bootloader & CLI App F/W Load
