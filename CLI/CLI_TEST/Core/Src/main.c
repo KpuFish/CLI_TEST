@@ -24,7 +24,7 @@
 #include "cli_interface.h"
 #include "system_config.h"
 #include "event_log.h"
-
+#include "app_main.h"
 
 
 

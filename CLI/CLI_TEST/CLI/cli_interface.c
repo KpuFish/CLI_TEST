@@ -61,9 +61,7 @@ CLI_t cli;
 DEBUG_VIEW_t view;
 
 
-//static char *last_command;
-
-
+//static char *last_command
 /* -------------------------
  * CLI LIST
  * -------------------------
@@ -226,7 +224,7 @@ int cbf_boot_logo(int argc, char *argv[])
 
 int cbf_sn(int argc, char *argv[])
 {
-    printf("SN : %s\r\n", (int)tag->fw_sn);
+    printf("SN : %s\r\n", (char *)tag->fw_sn);
     return 0;
 }
 
@@ -260,23 +258,15 @@ int cbf_test(int argc, char *argv[])
 
 int cbf_xmodem(int argc, char *argv[])
 {
+    #if BOOTLOADER
     uint32_t x_modem_size = 0;
     // f/w update using uart polling
     HAL_NVIC_DisableIRQ(USART2_IRQn);
 
-    #if 0
-    if (HAL_FLASH_Unlock() != HAL_OK) {
-        printf("Flash Unlcok failed\r\n");
-        return 0;
-    }
-
-    FLASH_If_Init();
-    #else
     FLASH_If_Erase(FLASH_BASE_MAIN_APP);
-    #endif
-
+    
     // entering x-modem ...
-    uint8_t ret = XMODEM_Rx((uint32_t*)&x_modem_size, (uint32_t *)FLASH_BASE_MAIN_APP);
+    uint8_t ret = XMODEM_Rx((uint32_t*)&x_modem_size, (uint8_t *)FLASH_BASE_MAIN_APP);
     
     HAL_FLASH_Lock();
 
@@ -286,16 +276,22 @@ int cbf_xmodem(int argc, char *argv[])
         printf("X-Modem Failed\r\n");
 
     } else {
-        printf("X-Modem Completed size : %d byte\r\n", (int)x_modem_size);
+        printf("X-Modem Completed size : %u byte\r\n", (int)x_modem_size);
     }
     CONSOLE_SPLIT;
 
     // resetting uart isr
     HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
+    #else
+    CONSOLE_SPLIT;
+    printf("System will be rebooted and will be entered bootloader\r\n");
+    CONSOLE_SPLIT;
+    
+    HAL_NVIC_SystemReset();
+    #endif
     return 0;
 }
-
 
 #define FLASH_RANGE_START   0x08000000
 #define FLASH_RANGE_END     0x080F0000
@@ -313,6 +309,7 @@ int cbf_dump(int argc, char *argv[])
     uint8_t buffer[LINE] = { 0, };
     #endif
 
+    // SRAM DUMP BLOCKED
     if (addr < (uint32_t*)FLASH_RANGE_START || addr > (uint32_t*)FLASH_RANGE_END) {
         printf("Flash Range is 0x%08x ~ 0x%08x\r\n", FLASH_RANGE_START, FLASH_RANGE_END);
         return 0;
@@ -321,7 +318,7 @@ int cbf_dump(int argc, char *argv[])
     CONSOLE_SPLIT;
     printf("Base Addrr // dump data ... \n");
     CONSOLE_SPLIT;
-    printf("0x%08x : ", (uint32_t *)addr);
+    printf("0x%08lx : ", (uint32_t)addr);
     
     for (uint16_t range = 1; range <= size; range++) {
         #if ASCII_CHAR_DUMP
@@ -332,13 +329,13 @@ int cbf_dump(int argc, char *argv[])
         }
         #endif
 
-        printf("%04x\t",  *(uint32_t *)addr++);
+        printf("%04lx\t",  *(addr++));
         if (range % LINE == 0) {
             #if ASCII_CHAR_DUMP
             printf("\t: %s", buffer);
             #endif
             printf("\r\n");
-            printf("0x%08x : ", (uint32_t *)addr);
+            printf("0x%08lx : ", (uint32_t)addr);
         }
     }
     printf("\r\n");
@@ -370,7 +367,7 @@ int cbf_flash_test(int argc, char *argv[])
 
     HAL_FLASH_Lock();
     
-    printf("0x%08x - 0x%08x\r\n", flash_addr, *flash_addr);
+    printf("0x%08lx - 0x%08lx\r\n", (uint32_t)flash_addr, (uint32_t)*flash_addr);
     return 0;
 }
 
@@ -450,7 +447,7 @@ int cbf_dbg_view(int argc, char *argv[])
     };
     
     const uint8_t max_size = sizeof(view_list) / sizeof(view_list[0]);
-    uint32_t view_point = (uint16_t *) strtol(argv[1], NULL, 16);
+    long view_point = strtol(argv[1], NULL, 16);
     
     if (view_point <= VIEW_NONE || view_point >= VIEW_MAX) {
         CONSOLE_SPLIT;

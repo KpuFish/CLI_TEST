@@ -33,7 +33,7 @@ void app_main(void)
         // Check Time sec
         if (HAL_GetTick() - time >= TIME_1SEC) {
         time = HAL_GetTick();
-        printf("%d\r\n", sec--);
+        printf("%u\r\n", sec--);
 
         // time over & jump main app
         if (sec <= 0) {

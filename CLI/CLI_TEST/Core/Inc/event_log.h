@@ -39,7 +39,7 @@ typedef struct
     uint32_t index;
     uint32_t type[EVENT_LIST_MAX];
     //const char *name[EVENT_LIST_MAX];
-    uint16_t crc;
+    //uint16_t crc;
 } EVENT_MANAGE_t;
 
 

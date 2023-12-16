@@ -130,7 +130,7 @@ BOOL_e XMODEM_GetRecord(U8 *u8DestAddress)
         u16CRC_check = (u16CRC_check<<8) ^ crc16tab[((u16CRC_check>>8) ^ u8GetChar)&0x00FF];
         
         #if 1
-        HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, u8DestAddress++, u8GetChar);
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, (uint32_t)u8DestAddress++, (uint64_t)u8GetChar);
         #else
         *u8DestAddress++ = u8GetChar;
         #endif

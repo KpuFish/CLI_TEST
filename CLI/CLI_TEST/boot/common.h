@@ -52,10 +52,10 @@ HAL_StatusTypeDef Serial_PutByte(uint8_t param);
 //---------------------------------------------
 // Type definition
 //---------------------------------------------
-typedef unsigned char   U8;
-typedef unsigned short  U16;
-typedef unsigned int    U32;
-typedef signed int      S32;
+typedef uint8_t   U8;
+typedef uint16_t  U16;
+typedef uint32_t  U32;
+typedef int32_t   S32;
 
 
 typedef enum 
