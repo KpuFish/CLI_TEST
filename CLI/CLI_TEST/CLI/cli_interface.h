@@ -21,7 +21,7 @@
                     
 #define D_DELIMITER                         " "
 
-#define NUMBER_OF_DELIMITER_VALUE           20
+#define NUMBER_OF_DELIMITER_VALUE           10
 
 #define UART_BUF_MAX                        128
 
@@ -32,20 +32,6 @@
 #define CLI_CLEAR                           0
 
 #define UART_BYTE                           1
-
-
-//------------------------------------------------
-// Enum List
-//------------------------------------------------
-typedef enum {
-    VIEW_NONE       = 0x0000,
-    VIEW_DBG_MEASE  = 0x1000,
-    VIEW_DBG_RELAY  = 0x1001,
-    VIEW_DBG_ETC    = 0x1002,
-    VIEW_DBG_SRAM   = 0x1003,
-    VIEW_DBG_FLASH  = 0x1004,
-    VIEW_MAX        = 0xFFFF
-} VIEW_DBG_POINT_e;
 
 
 //------------------------------------------------
@@ -64,19 +50,39 @@ typedef enum {
 #define ASCII_CTRL_C                        0x03
 
 
+#define ASTERISK                            '*'
+
+#define SPACE_BAR                           ' '
+
 #define LAST_CMD                            "!"
+
 #if 1
 #define LOWER_A                             'a'
+
 #define LOWER_Z                             'z'
 #else
 #define UPPER_A                             'A'
+
 #define UPPER_Z                             'Z'
 #endif
+
 #define CONVERT_CHAR_OFFSET                 0x20
 
-#define REPEAT_LAST_CMD                     "*"
-
 #define CONSOLE_SPLIT                       printf("--------------------------------------------------\r\n")
+
+
+//------------------------------------------------
+// Enum List
+//------------------------------------------------
+typedef enum {
+    VIEW_NONE       = 0x0000,
+    VIEW_DBG_MEASE  = 0x1000,
+    VIEW_DBG_RELAY  = 0x1001,
+    VIEW_DBG_ETC    = 0x1002,
+    VIEW_DBG_SRAM   = 0x1003,
+    VIEW_DBG_FLASH  = 0x1004,
+    VIEW_MAX        = 0xFFFF
+} VIEW_DBG_POINT_e;
 
 
 //------------------------------------------------
@@ -87,6 +93,7 @@ typedef struct
     uint8_t buffer[UART_BUF_MAX];
     uint8_t rx_index;
     uint8_t rx_done;
+    uint8_t is_cmd_repeat;
 } CLI_t;
 
 extern CLI_t cli;

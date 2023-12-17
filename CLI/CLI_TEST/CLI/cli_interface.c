@@ -4,7 +4,7 @@
 #include "system_config.h"
 #include "menu.h"
 #include "event_log.h"
-
+#include "flash_if.h"
 
 //----------------------------------------
 // UART PRINTF
@@ -60,6 +60,7 @@ CLI_t cli;
 
 DEBUG_VIEW_t view;
 
+char gRx_cmd_repeat[UART_BUF_MAX] = { 0, };
 
 //static char *last_command
 /* -------------------------
@@ -110,47 +111,53 @@ void Convert_Char(uint8_t *byte)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  if(huart->Instance == USART2)
-  {
-        // echo back test
-        //HAL_UART_Transmit(&huart2, &uart_rx_byte, UART_BYTE, UART_TIME_OUT);
-        if (uart_rx_byte == ASCII_LF || uart_rx_byte == ASCII_CR) {
+    if(huart->Instance == USART2) {
+        if (uart_rx_byte == ASCII_LF || uart_rx_byte == ASCII_CR || uart_rx_byte == ASTERISK) {
             cli.rx_done  = CLI_READY;
-        }
-         else if (uart_rx_byte == ASCII_BACKSPACE) {
+        } else if (uart_rx_byte == ASCII_BACKSPACE) {
             if (cli.rx_index > 0) {
                 cli.buffer[--cli.rx_index] = 0;
                 printf(" %c",  ASCII_BACKSPACE);
             } else {
                 printf(" ");
             }
-        }
-         else {
+        } else {
             Convert_Char(&uart_rx_byte);
             cli.buffer[cli.rx_index] = uart_rx_byte;
             cli.rx_index = (cli.rx_index + 1) % UART_BUF_MAX;
         }
         // uart rxne pending clear
         HAL_UART_Receive_IT(&huart2, &uart_rx_byte, UART_BYTE);
-  }
+    }
 }
 //----------------------------------------
 
 
 /* CLI PARSER */
+#define DBG_CMD 0
 int parser(char *cmd)
 {
-    int    argc = 0;
-    char  *argv[NUMBER_OF_DELIMITER_VALUE];
+    int     argc = 0;
+    char   *argv[NUMBER_OF_DELIMITER_VALUE];
+    char   **ppStr  = NULL;
+    short   str_len = 0;
     
-#if USE_LAST_CMD
-    static char *last_cmd;
-#endif
-
     if (cmd == NULL) {
         printf("CMD Error\r\n");
     }
     
+    // is cmd repeat?
+    if (uart_rx_byte == ASTERISK) {
+        strcpy(cmd, (char *)&gRx_cmd_repeat[0]);
+        #if DBG_CMD
+        printf("STR:%s", gRx_cmd_repeat);
+        #endif
+        printf("\r\n");
+        cli.is_cmd_repeat = TRUE;
+    } else {
+        cli.is_cmd_repeat = FALSE;
+    }
+
 	//----------------------------------------
     // SPLIT THE UART RX STRING
     //----------------------------------------
@@ -162,38 +169,38 @@ int parser(char *cmd)
         if (argv[argc] == NULL) {
             break;
         }
-        argc++;
-    }
 
-#if USE_LAST_CMD
-    if (strcmp(argv[0], REPEAT_LAST_CMD) == CLI_MATCH) {
-        strcpy(argv[0], last_cmd);
+        if (++argc >= NUMBER_OF_DELIMITER_VALUE) {
+            break;
+        }
     }
-#endif
 
     //----------------------------------------
     // FIND THE MATCHED STRING
     //----------------------------------------
-    for (int cnt = 0; cmd_list[cnt].name != NULL; cnt++) {
+    for (short cnt = 0; cmd_list[cnt].name != NULL; cnt++) {
         if (strcmp(cmd_list[cnt].name, argv[0]) == CLI_MATCH) {
             cmd_list[cnt].func(argc, argv);
         }
     }
-
-#if USE_LAST_CMD
-    // Last Commad Copy
-    strcpy(last_cmd, argv[0]);
-#endif
+    
+    // Cpy Last Command...
+    if (cli.is_cmd_repeat == FALSE) {
+        memset((char *)&gRx_cmd_repeat[0], (char)'\0', sizeof(gRx_cmd_repeat));
+        ppStr = &argv[0];
+        for (short cnt = 0; cnt < argc; cnt++) {
+            strcpy(&gRx_cmd_repeat[0] + strlen(&gRx_cmd_repeat[0]), *ppStr++);
+            str_len = strlen(&gRx_cmd_repeat[0]);
+            gRx_cmd_repeat[str_len] = SPACE_BAR;
+        }
+        #if DBG_CMD
+        printf("cpy str:%s\r\n", gRx_cmd_repeat);
+        #endif
+    }
 
     memset(&cli, 0x0, sizeof(CLI_t));
     printf(" $Fish >> ");
     
-#if USE_LAST_CMD
-    if (strcmp(last_command, LAST_CMD) == CLI_MATCH) {
-        printf("%s", last_command);
-    }
-#endif
-
     return LIST_NOT_FOUND;
 }
 
@@ -285,7 +292,7 @@ int cbf_xmodem(int argc, char *argv[])
     HAL_NVIC_EnableIRQ(USART2_IRQn);
     #else
     CONSOLE_SPLIT;
-    printf("System will be rebooted and will be entered bootloader\r\n");
+    printf("System is now entering the bootloader after reboot ... \r\n");
     CONSOLE_SPLIT;
     
     HAL_NVIC_SystemReset();
@@ -293,8 +300,16 @@ int cbf_xmodem(int argc, char *argv[])
     return 0;
 }
 
-#define FLASH_RANGE_START   0x08000000
-#define FLASH_RANGE_END     0x080F0000
+static uint8_t check_memory_range(uint32_t address)
+{
+    if ( ((address >= (uint32_t )FLASH_RANGE_START)        && (address <= (uint32_t )FLASH_RANGE_END)) ||
+         ((address >= (uint32_t )ADDR_INTERNAL_SRAM_START) && (address <= (uint32_t )ADDR_INTERNAL_SRAM_END))) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 #define LINE				4
 #define CHAR_SPACE          ' '
 #define CHAR_z              'z'
@@ -303,23 +318,23 @@ int cbf_xmodem(int argc, char *argv[])
 int cbf_dump(int argc, char *argv[])
 {
     uint32_t size  = atoi(argv[2]);
-    volatile uint32_t *addr = (volatile uint32_t *) strtol(argv[1], NULL, 16);
-
+    uint32_t *addr = (uint32_t *) strtol(argv[1], NULL, 16);
+    uint32_t is_range_ok = (uint32_t)addr;
     #if ASCII_CHAR_DUMP
     uint8_t buffer[LINE] = { 0, };
     #endif
 
-    // SRAM DUMP BLOCKED
-    if (addr < (uint32_t*)FLASH_RANGE_START || addr > (uint32_t*)FLASH_RANGE_END) {
-        printf("Flash Range is 0x%08x ~ 0x%08x\r\n", FLASH_RANGE_START, FLASH_RANGE_END);
-        return 0;
+    if (check_memory_range(is_range_ok) == TRUE) {
+        CONSOLE_SPLIT;
+        printf("Base Addrr // dump data ... \n");
+        CONSOLE_SPLIT;
+    } else {
+        printf("Flash Range is 0x%08lx ~ 0x%08lx\r\n", FLASH_RANGE_START, FLASH_RANGE_END);
+        printf("SRAM  Range is 0x%08lx ~ 0x%08lx\r\n", ADDR_INTERNAL_SRAM_START, ADDR_INTERNAL_SRAM_END);
+        return FALSE;
     }
 
-    CONSOLE_SPLIT;
-    printf("Base Addrr // dump data ... \n");
-    CONSOLE_SPLIT;
     printf("0x%08lx : ", (uint32_t)addr);
-    
     for (uint16_t range = 1; range <= size; range++) {
         #if ASCII_CHAR_DUMP
         if (( *(uint8_t*)addr > CHAR_SPACE) && ( *(uint8_t*)addr <= CHAR_z)) {
@@ -348,6 +363,11 @@ int cbf_flash_test(int argc, char *argv[])
     uint32_t addr = (uint32_t)flash_addr;
     uint32_t data = atoi(argv[2]);
     
+    if (check_memory_range(addr) == FALSE) {
+        printf("Flash Range is 0x%08lx ~ 0x%08lx\r\n", FLASH_RANGE_START, FLASH_RANGE_END);
+        return FALSE;
+    }
+
     #if 0
     if (HAL_FLASH_Unlock() != HAL_OK) {
         printf("Flash Unlcok failed\r\n");
