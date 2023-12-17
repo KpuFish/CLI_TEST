@@ -50,6 +50,13 @@ Option bytes  0x1FFF C000 - 0x1FFF C00F 16  bytes
 #define ADDR_FLASH_SECTOR_6_BANK1     ((uint32_t)0x08040000) /* Base @ of Sector 6, Bank1, 128 Kbytes */
 #define ADDR_FLASH_SECTOR_7_BANK1     ((uint32_t)0x08060000) /* Base @ of Sector 7, Bank1, 128 Kbytes */
 
+#define ADDR_INTERNAL_SRAM_START      (0x20000000UL)
+#define ADDR_INTERNAL_SRAM_END        (0x20017FFFUL)
+
+#define FLASH_RANGE_START             (0x08000000UL)
+#define FLASH_RANGE_END               (0x0807FFFFUL)
+
+
 /* Error code */
 enum 
 {
